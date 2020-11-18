@@ -33,14 +33,14 @@ CREATE TABLE employee (
 );
 
 INSERT INTO employee(first_name, last_name , role_id, manager_id)
-VALUES ('John', 'Doe', 1, 1),
-       ('Mike', 'Chan', 1, 2),
-       ('Ashley', 'Rodriguez', 2, null),
-       ('Kevin', 'Tupik', 2, 1),
-       ('Malia', 'Brown', 3, null),
-       ('Sarah', 'Lourd', 4, null),
-       ('Tom', 'Allen', 4, 3),
-       ('Christian', 'Eckenrode', 2, 4);
+VALUES ('John', 'Doe', 1, 3),
+       ('Mike', 'Chan', 2, 1),
+       ('Ashley', 'Rodriguez', 3, null),
+       ('Kevin', 'Tupik', 4, 3),
+       ('Malia', 'Brown', 5, null),
+       ('Sarah', 'Lourd', 6, null),
+       ('Tom', 'Allen', 7, 6),
+       ('Christian', 'Eckenrode', 8, 2);
 
 CREATE TABLE department (
   id INT NOT NULL AUTO_INCREMENT,

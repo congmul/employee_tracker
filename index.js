@@ -31,10 +31,11 @@ connection.connect((err) => {
 
 
 function menuInquirer(){
+    let order = "";
     inquirer
         .prompt([
             {
-                type: "list",
+                type: "rawlist",
                 message : "What woud you like to do?",
                 name: "menu",
                 choices: [
@@ -44,27 +45,43 @@ function menuInquirer(){
                     "Add Employees",
                     "Remove Employee",
                     "Update Employee Role",
-                    "Update Employee Manager"
+                    "Update Employee Manager",
+                    "EXIT"
                 ]
             }
         ]).then(res => {
             console.log(res);
-            viewSql();
+            if(res.menu === "EXIT"){
+                console.log("Close App...");
+                connection.end();
+                return;
+            }else if(res.menu === "View All Employees"){
+                order = "ORDER BY id"
+                viewSql(order);
+            }else if(res.menu === "View All Employees By Department"){
+                order = "ORDER BY department"
+                viewSql(order);
+            }else if(res.menu === "View All Employees By Manager"){
+                order = "ORDER BY manager"
+                viewSql(order);
+            }
+            
         })
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // SQL
-
-function viewSql(){
-    connection.query(
-        `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary 
-        FROM role r
-        JOIN department d ON r.department_id =d.id
-        RIGHT JOIN employee e ON r.id = e.manager_id`,
+function viewSql(order){
+    connection.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name,' ',m.last_name) AS manager
+    FROM employee e
+    JOIN role r ON e.role_id = r.id
+    JOIN department d ON r.department_id = d.id
+    LEFT JOIN employee m ON e.manager_id = m.id
+    ${order};`,
         function(err, res) {
             if(err) throw err;
             console.log(res);
+            menuInquirer();
         }
     );
 }
