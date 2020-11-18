@@ -1,6 +1,7 @@
 const Title = require("./assets/js/appTitle");
 const inquirer = require("inquirer");
 const mysql = require("mysql");
+// require("console.table");
 
 let title = new Title();
 
@@ -50,7 +51,7 @@ function menuInquirer(){
                 ]
             }
         ]).then(res => {
-            console.log(res);
+            // console.log(res);
             if(res.menu === "EXIT"){
                 console.log("Close App...");
                 connection.end();
@@ -80,7 +81,15 @@ function viewSql(order){
     ${order};`,
         function(err, res) {
             if(err) throw err;
-            console.log(res);
+            console.log();
+            console.log(`id  first_name  last_name   title               department    salary      manager`);
+            console.log(`--  ----------  ----------  ------------------  ------------  ----------  -------------------`);
+            for(obj of res){
+                
+                console.log(String(obj.id).padEnd(4) + obj.first_name.padEnd(12) + obj.last_name.padEnd(12) + obj.title.padEnd(20) + obj.department.padEnd(14) + String(obj.salary).padEnd(12) + obj.manager);
+                
+            }
+            console.log();
             menuInquirer();
         }
     );
