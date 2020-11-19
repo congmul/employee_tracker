@@ -1,7 +1,6 @@
 const Title = require("./assets/js/appTitle");
 const inquirer = require("inquirer");
 const mysql = require("mysql");
-// require("console.table");
 
 let title = new Title();
 
@@ -70,21 +69,21 @@ function menuInquirer() {
                 order = "ORDER BY manager"
                 viewSql(order);
             } else if (res.menu === "Add Employees") {
-                addSql();
+                addEmployeeSql();
             } else if (res.menu === "Update Employee Manager") {
-                updateSql();
+                updateEmployeeSql();
             } else if (res.menu === "Remove Employee") {
-                deleteSql();
+                deleteEmployeeSql();
             } else if (res.menu === "Update Employee Role") {
                 
             } else if (res.menu === "View All Roles") {
-                
+                viewRoleSql();
             } else if (res.menu === "Add Role") {
                 
             } else if (res.menu === "Remove Role") {
                 
             } else if (res.menu === "View All Departments") {
-                
+                viewDepartmentSql();
             } else if (res.menu === "Add Departments") {
                 
             } else if (res.menu === "Remove Departments") {
@@ -109,9 +108,7 @@ function viewSql(order) {
             console.log(`id  first_name  last_name   title               department    salary      manager`);
             console.log(`--  ----------  ----------  ------------------  ------------  ----------  -------------------`);
             for (obj of res) {
-
                 console.log(String(obj.id).padEnd(4) + obj.first_name.padEnd(12) + obj.last_name.padEnd(12) + obj.title.padEnd(20) + obj.department.padEnd(14) + String(obj.salary).padEnd(12) + obj.manager);
-
             }
             console.log();
             menuInquirer();
@@ -119,12 +116,44 @@ function viewSql(order) {
     );
 }
 
-function addSql() {
+function viewRoleSql() {
+    connection.query(`SELECT r.id, r.title, r.salary, d.name AS department FROM role r JOIN department d ON r.department_id = d.id`,
+        function (err, res) {
+            if (err) throw err;
+            console.log();
+            console.log(`id  title              salary    department`);
+            console.log(`--  -----------------  --------  ---------------`);
+            for (obj of res) {
+                console.log(String(obj.id).padEnd(4) + obj.title.padEnd(19) + String(obj.salary).padEnd(10) + obj.department.padEnd(17));
+            }
+            console.log();
+            menuInquirer();
+        }
+    );
+}
+
+function viewDepartmentSql() {
+    connection.query(`SELECT * FROM department;`,
+        function (err, res) {
+            if (err) throw err;
+            console.log();
+            console.log(`id  department`);
+            console.log(`--  -------------`);
+            for (obj of res) {
+                console.log(String(obj.id).padEnd(4) + obj.name.padEnd(19));
+            }
+            console.log();
+            menuInquirer();
+        }
+    );
+}
+
+function addEmployeeSql() {
     connection.query(`SELECT e.id AS employeeID, r.id AS roleID, CONCAT(first_name,' ',last_name) AS name, r.title 
     FROM employee e JOIN role r ON e.role_id = r.id;`,
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
             let resultObj = res;
             let nameArr = [];
             let roleArr = [];
@@ -184,7 +213,7 @@ function addSql() {
     )
 }
 
-function updateSql() {
+function updateEmployeeSql() {
     connection.query(`SELECT id, CONCAT(first_name,' ',last_name) AS name FROM employee`,
         function(err, res){
             if (err) throw err;
@@ -192,7 +221,7 @@ function updateSql() {
         })
 }
 
-function deleteSql() {
+function deleteEmployeeSql() {
     connection.query(`SELECT CONCAT(first_name,' ',last_name) AS name
     FROM employee;`,
         function (err, res) {
