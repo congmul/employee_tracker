@@ -45,6 +45,12 @@ function menuInquirer() {
                     "Remove Employee",
                     "Update Employee Role",
                     "Update Employee Manager",
+                    "View All Roles",
+                    "Add Role",
+                    "Remove Role",
+                    "View All Departments",
+                    "Add Departments",
+                    "Remove Departments",
                     "EXIT"
                 ]
             }
@@ -64,10 +70,25 @@ function menuInquirer() {
                 order = "ORDER BY manager"
                 viewSql(order);
             } else if (res.menu === "Add Employees") {
-                order = "ORDER BY manager"
                 addSql();
+            } else if (res.menu === "Update Employee Manager") {
+                updateSql();
             } else if (res.menu === "Remove Employee") {
                 deleteSql();
+            } else if (res.menu === "Update Employee Role") {
+                
+            } else if (res.menu === "View All Roles") {
+                
+            } else if (res.menu === "Add Role") {
+                
+            } else if (res.menu === "Remove Role") {
+                
+            } else if (res.menu === "View All Departments") {
+                
+            } else if (res.menu === "Add Departments") {
+                
+            } else if (res.menu === "Remove Departments") {
+                
             }
 
         })
@@ -156,11 +177,19 @@ function addSql() {
                     console.log(`Added ${res.first_name} ${res.last_name} to the database`);
                     connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${res.first_name}", "${res.last_name}", ${roleID}, ${managerID});`);
                     console.log();
-                    
+
                     menuInquirer();
                 })
         }
     )
+}
+
+function updateSql() {
+    connection.query(`SELECT id, CONCAT(first_name,' ',last_name) AS name FROM employee`,
+        function(err, res){
+            if (err) throw err;
+            console.log(res);
+        })
 }
 
 function deleteSql() {
