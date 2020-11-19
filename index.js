@@ -75,17 +75,17 @@ function menuInquirer() {
             } else if (res.menu === "Remove Employee") {
                 deleteEmployeeSql();
             } else if (res.menu === "Update Employee Role") {
-                
+
             } else if (res.menu === "View All Roles") {
                 viewRoleSql();
             } else if (res.menu === "Add Role") {
-                
+
             } else if (res.menu === "Remove Role") {
                 deleteRoleSql();
             } else if (res.menu === "View All Departments") {
                 viewDepartmentSql();
             } else if (res.menu === "Add Departments") {
-                
+
             } else if (res.menu === "Remove Departments") {
                 deleteDepartmentSql();
             }
@@ -98,8 +98,8 @@ function menuInquirer() {
 function viewSql(order) {
     connection.query(`SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name,' ',m.last_name) AS manager
     FROM employee e
-    JOIN role r ON e.role_id = r.id
-    JOIN department d ON r.department_id = d.id
+    LEFT JOIN role r ON e.role_id = r.id
+    LEFT JOIN department d ON r.department_id = d.id
     LEFT JOIN employee m ON e.manager_id = m.id
     ${order};`,
         function (err, res) {
@@ -108,7 +108,7 @@ function viewSql(order) {
             console.log(`id  first_name  last_name   title               department    salary      manager`);
             console.log(`--  ----------  ----------  ------------------  ------------  ----------  -------------------`);
             for (obj of res) {
-                console.log(String(obj.id).padEnd(4) + obj.first_name.padEnd(12) + obj.last_name.padEnd(12) + obj.title.padEnd(20) + obj.department.padEnd(14) + String(obj.salary).padEnd(12) + obj.manager);
+                console.log(String(obj.id).padEnd(4) + obj.first_name.padEnd(12) + obj.last_name.padEnd(12) + String(obj.title).padEnd(20) + String(obj.department).padEnd(14) + String(obj.salary).padEnd(12) + obj.manager);
             }
             console.log();
             menuInquirer();
@@ -117,14 +117,14 @@ function viewSql(order) {
 }
 
 function viewRoleSql() {
-    connection.query(`SELECT r.id, r.title, r.salary, d.name AS department FROM role r JOIN department d ON r.department_id = d.id`,
+    connection.query(`SELECT r.id, r.title, r.salary, d.name AS department FROM role r LEFT JOIN department d ON r.department_id = d.id`,
         function (err, res) {
             if (err) throw err;
             console.log();
             console.log(`id  title              salary    department`);
             console.log(`--  -----------------  --------  ---------------`);
             for (obj of res) {
-                console.log(String(obj.id).padEnd(4) + obj.title.padEnd(19) + String(obj.salary).padEnd(10) + obj.department.padEnd(17));
+                console.log(String(obj.id).padEnd(4) + obj.title.padEnd(19) + String(obj.salary).padEnd(10) + String(obj.department).padEnd(17));
             }
             console.log();
             menuInquirer();
@@ -149,19 +149,41 @@ function viewDepartmentSql() {
 }
 
 function addEmployeeSql() {
-    connection.query(`SELECT e.id AS employeeID, r.id AS roleID, CONCAT(first_name,' ',last_name) AS name, r.title 
-    FROM employee e JOIN role r ON e.role_id = r.id;`,
+    // connection.query(`SELECT e.id AS employeeID, r.id AS roleID, CONCAT(first_name,' ',last_name) AS name, r.title 
+    // FROM employee e JOIN role r`,
+    connection.query(`SELECT CONCAT(first_name,' ',last_name) AS name, e.id AS manager_id, r.id AS role_id, r.title FROM employee e
+    LEFT JOIN role r ON e.role_id = r.id
+    UNION 
+    SELECT CONCAT(e.first_name,' ',e.last_name) AS name, e.id AS manager_id, r.id AS role_id, r.title FROM role r
+    LEFT JOIN employee e ON e.role_id = r.id`,
         function (err, res) {
             if (err) throw err;
-            // console.log(res);
+            console.log(res);
             let resultObj = res;
-            let nameArr = [];
-            let roleArr = [];
-            nameArr.push("None");
+            let nameArrTemp = [];
+            let roleArrTemp = [];
+            nameArrTemp.push("None");
             for (obj of res) {
-                nameArr.push(obj.name);
-                roleArr.push(obj.title);
+                if (obj.title === null) {
+
+                } else {
+                    roleArrTemp.push(obj.title);
+                }
+                if(obj.name === null) {
+
+                } else{
+                    nameArrTemp.push(obj.name);
+                }
             }
+
+            // Remove duplicate value
+            let roleArr = roleArrTemp.filter((c, index) => {
+                return roleArrTemp.indexOf(c) === index;
+            });
+            let nameArr = nameArrTemp.filter((c, index) => {
+                return nameArrTemp.indexOf(c) === index;
+            });
+
             inquirer
                 .prompt([
                     {
@@ -191,16 +213,20 @@ function addEmployeeSql() {
                     let roleID = 0;
                     let managerID = 0;
                     // let inputName = res.first_name + " " + res.last_name;
-                    for (obj of resultObj){
-                        if(obj.title === res.role){
-                            roleID = obj.roleID;
+                    for (obj of resultObj) {
+                        if (obj.title === res.role) {
+                            roleID = obj.role_id;
                         }
-                        if(obj.name === res.managerName){
-                            managerID = obj.employeeID;
+                        if (obj.name === res.managerName) {
+                            managerID = obj.manager_id;
                         }
                     }
-                    if(managerID === 0){
+                    if (managerID === 0) {
                         managerID = null;
+                    }
+
+                    if (roleID === 0) {
+                        roleID = null;
                     }
                     console.log(`Added ${res.first_name} ${res.last_name} role_Id: ${roleID} / Manager_Id ${managerID}`);
                     console.log(`Added ${res.first_name} ${res.last_name} to the database`);
@@ -215,7 +241,7 @@ function addEmployeeSql() {
 
 function updateEmployeeSql() {
     connection.query(`SELECT id, CONCAT(first_name,' ',last_name) AS name FROM employee`,
-        function(err, res){
+        function (err, res) {
             if (err) throw err;
             console.log(res);
         })
@@ -244,7 +270,7 @@ function deleteEmployeeSql() {
                         menuInquirer();
                     } else {
                         connection.query("DELETE FROM employee WHERE CONCAT(first_name,' ',last_name) = ?", [res.name]);
-                        console.log("Removed employee from the database");
+                        console.log(`Removed ${res.name} from the database`);
                         console.log();
                         menuInquirer();
                     }
@@ -308,6 +334,42 @@ function deleteDepartmentSql() {
                         menuInquirer();
                     } else {
                         connection.query("DELETE FROM department WHERE name = ?", [res.name]);
+                        console.log(`Removed ${res.name} from the database`);
+                        console.log();
+                        menuInquirer();
+                    }
+                });
+        }
+    );
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Be creating Common Function.
+function deleteSql(table, columnName) {
+    connection.query("SELECT ? FROM ?", [columnName, table],
+        function (err, res) {
+            if (err) throw err;
+            console.log(res);
+            let nameArr = [];
+            for (obj of res) {
+                nameArr.push(obj.name);
+            }
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message: `Which ${table} do you want to remove?`,
+                        name: "name",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if (res.name === "CANCEL") {
+                        menuInquirer();
+                    } else {
+                        connection.query("DELETE FROM ? WHERE name = ?", [table, res.name]);
                         console.log(`Removed ${res.name} from the database`);
                         console.log();
                         menuInquirer();
