@@ -99,10 +99,12 @@ function viewSql(order) {
 }
 
 function addSql() {
-    connection.query(`SELECT CONCAT(first_name,' ',last_name) AS name, r.title 
+    connection.query(`SELECT e.id AS employeeID, r.id AS roleID, CONCAT(first_name,' ',last_name) AS name, r.title 
     FROM employee e JOIN role r ON e.role_id = r.id;`,
         function (err, res) {
             if (err) throw err;
+            console.log(res);
+            let resultObj = res;
             let nameArr = [];
             let roleArr = [];
             nameArr.push("None");
@@ -135,9 +137,26 @@ function addSql() {
                         choices: nameArr
                     }
                 ]).then((res) => {
-                    console.log(res);
+                    console.log(resultObj);
+                    let roleID = 0;
+                    let managerID = 0;
+                    // let inputName = res.first_name + " " + res.last_name;
+                    for (obj of resultObj){
+                        if(obj.title === res.role){
+                            roleID = obj.roleID;
+                        }
+                        if(obj.name === res.managerName){
+                            managerID = obj.employeeID;
+                        }
+                    }
+                    if(managerID === 0){
+                        managerID = null;
+                    }
+                    console.log(`Added ${res.first_name} ${res.last_name} role_Id: ${roleID} / Manager_Id ${managerID}`);
                     console.log(`Added ${res.first_name} ${res.last_name} to the database`);
+                    connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${res.first_name}", "${res.last_name}", ${roleID}, ${managerID});`);
                     console.log();
+                    
                     menuInquirer();
                 })
         }
