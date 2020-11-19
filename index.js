@@ -29,8 +29,6 @@ connection.connect((err) => {
 
 
 
-
-
 function menuInquirer(){
     let order = "";
     inquirer
@@ -65,6 +63,8 @@ function menuInquirer(){
             }else if(res.menu === "View All Employees By Manager"){
                 order = "ORDER BY manager"
                 viewSql(order);
+            }else if(res.menu === "Remove Employee"){
+                deleteSql();
             }
             
         })
@@ -94,3 +94,39 @@ function viewSql(order){
         }
     );
 }
+
+function deleteSql(){
+    connection.query(`SELECT CONCAT(e.first_name,' ',e.last_name) AS name
+    FROM employee e
+    JOIN role r ON e.role_id = r.id
+    JOIN department d ON r.department_id = d.id
+    LEFT JOIN employee m ON e.manager_id = m.id;`,
+        function(err, res) {
+            if(err) throw err;
+            let nameArr = [];
+            for(obj of res){
+                nameArr.push(obj.name);
+            }
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message : "Who?",
+                        name: "name",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if(res.name === "CANCEL"){
+                        menuInquirer();
+                    }else{
+                        connection.query("DELETE FROM employee WHERE CONCAT(first_name,' ',last_name) = ?", [res.name]);
+                        console.log("Removed employee from the database");
+                        console.log();
+                        menuInquirer();
+                    }
+                });
+        }
+    );
+}
+
