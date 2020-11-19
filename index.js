@@ -81,13 +81,13 @@ function menuInquirer() {
             } else if (res.menu === "Add Role") {
                 
             } else if (res.menu === "Remove Role") {
-                
+                deleteRoleSql();
             } else if (res.menu === "View All Departments") {
                 viewDepartmentSql();
             } else if (res.menu === "Add Departments") {
                 
             } else if (res.menu === "Remove Departments") {
-                
+                deleteDepartmentSql();
             }
 
         })
@@ -253,3 +253,66 @@ function deleteEmployeeSql() {
     );
 }
 
+function deleteRoleSql() {
+    connection.query(`SELECT title FROM role`,
+        function (err, res) {
+            if (err) throw err;
+            console.log(res);
+            let nameArr = [];
+            for (obj of res) {
+                nameArr.push(obj.title);
+            }
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message: "Which role do you want to remove?",
+                        name: "role",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if (res.name === "CANCEL") {
+                        menuInquirer();
+                    } else {
+                        connection.query("DELETE FROM role WHERE title = ?", [res.role]);
+                        console.log(`Removed ${res.role} from the database`);
+                        console.log();
+                        menuInquirer();
+                    }
+                });
+        }
+    );
+}
+
+function deleteDepartmentSql() {
+    connection.query(`SELECT name FROM department`,
+        function (err, res) {
+            if (err) throw err;
+            console.log(res);
+            let nameArr = [];
+            for (obj of res) {
+                nameArr.push(obj.name);
+            }
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message: "Which Department do you want to remove?",
+                        name: "name",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if (res.name === "CANCEL") {
+                        menuInquirer();
+                    } else {
+                        connection.query("DELETE FROM department WHERE name = ?", [res.name]);
+                        console.log(`Removed ${res.name} from the database`);
+                        console.log();
+                        menuInquirer();
+                    }
+                });
+        }
+    );
+}
