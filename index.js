@@ -75,7 +75,7 @@ function menuInquirer() {
             } else if (res.menu === "Remove Employee") {
                 deleteEmployeeSql();
             } else if (res.menu === "Update Employee Role") {
-
+                updateEmployeeRole();
             } else if (res.menu === "View All Roles") {
                 viewRoleSql();
             } else if (res.menu === "Add Role") {
@@ -149,8 +149,6 @@ function viewDepartmentSql() {
 }
 
 function addEmployeeSql() {
-    // connection.query(`SELECT e.id AS employeeID, r.id AS roleID, CONCAT(first_name,' ',last_name) AS name, r.title 
-    // FROM employee e JOIN role r`,
     connection.query(`SELECT CONCAT(first_name,' ',last_name) AS name, e.id AS manager_id, r.id AS role_id, r.title FROM employee e
     LEFT JOIN role r ON e.role_id = r.id
     UNION 
@@ -239,6 +237,75 @@ function addEmployeeSql() {
     )
 }
 
+function updateEmployeeRole() {
+    connection.query(`SELECT e.id, CONCAT(first_name,' ',last_name) AS name, r.title FROM employee e
+    LEFT JOIN role r ON r.id = e.role_id
+    UNION
+    SELECT r.id, CONCAT(first_name,' ',last_name) AS name, r.title FROM employee e
+    RIGHT JOIN role r ON r.id = e.role_id`,
+        function (err, res) {
+            if (err) throw err;
+            let nameArrTemp = [];
+            let roleArrTemp = [];
+            let employeeArr = res;
+            let employeeSelected = "";
+            for (obj of res) {
+                nameArrTemp.push(obj.name);
+            }
+            for (obj of res) {
+                roleArrTemp.push(obj.title);
+            }
+
+            let nameArr = nameArrTemp.filter((c, index) => {
+                return nameArrTemp.indexOf(c) === index;
+            });
+            let roles = roleArrTemp.filter((c, index) => {
+                return roleArrTemp.indexOf(c) === index;
+            });
+            
+
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message: "Which employee's role do you want to change?",
+                        name: "name",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if (res.name === "CANCEL") {
+                        menuInquirer();
+                    } else {
+                        employeeSelected = res.name;
+                        inquirer
+                            .prompt([
+                                {
+                                    type: "rawlist",
+                                    message: "Which role do you want to assign?",
+                                    name: "role",
+                                    choices: roles
+                                }
+                            ]).then((res) => {
+                                // console.log(employeeArr);
+                                let id = 0;
+                                    for(obj of employeeArr){
+                                        if(res.role === obj.title){
+                                            id = obj.id;
+                                        }
+                                    }
+                                
+                                
+                                connection.query("UPDATE employee SET role_id = ? WHERE CONCAT(first_name,' ',last_name) = ?", [id, employeeSelected]);
+                                console.log(`Updated ${employeeSelected}'s role as ${res.role} from the database`);
+                                console.log();
+                                menuInquirer();
+                            });
+                    }
+                });
+        })
+}
+
 function updateEmployeeSql() {
     connection.query(`SELECT id, CONCAT(first_name,' ',last_name) AS name FROM employee`,
         function (err, res) {
@@ -296,6 +363,95 @@ function updateEmployeeSql() {
                     }
                 });
         })
+}
+
+function addRole() {
+    connection.query(`SELECT CONCAT(first_name,' ',last_name) AS name, e.id AS manager_id, r.id AS role_id, r.title FROM employee e
+    LEFT JOIN role r ON e.role_id = r.id
+    UNION 
+    SELECT CONCAT(e.first_name,' ',e.last_name) AS name, e.id AS manager_id, r.id AS role_id, r.title FROM role r
+    LEFT JOIN employee e ON e.role_id = r.id`,
+        function (err, res) {
+            if (err) throw err;
+            console.log(res);
+            let resultObj = res;
+            let nameArrTemp = [];
+            let roleArrTemp = [];
+            nameArrTemp.push("None");
+            for (obj of res) {
+                if (obj.title === null) {
+
+                } else {
+                    roleArrTemp.push(obj.title);
+                }
+                if (obj.name === null) {
+
+                } else {
+                    nameArrTemp.push(obj.name);
+                }
+            }
+
+            // Remove duplicate value
+            let roleArr = roleArrTemp.filter((c, index) => {
+                return roleArrTemp.indexOf(c) === index;
+            });
+            let nameArr = nameArrTemp.filter((c, index) => {
+                return nameArrTemp.indexOf(c) === index;
+            });
+
+            inquirer
+                .prompt([
+                    {
+                        type: "input",
+                        message: "What is the employee's first name?",
+                        name: "first_name"
+                    },
+                    {
+                        type: "input",
+                        message: "What is the employee's last name?",
+                        name: "last_name"
+                    },
+                    {
+                        type: "rawlist",
+                        message: "What is the employee's role?",
+                        name: "role",
+                        choices: roleArr
+                    },
+                    {
+                        type: "rawlist",
+                        message: "Who is the employee's manager?",
+                        name: "managerName",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    console.log(resultObj);
+                    let roleID = 0;
+                    let managerID = 0;
+                    // let inputName = res.first_name + " " + res.last_name;
+                    for (obj of resultObj) {
+                        if (obj.title === res.role) {
+                            roleID = obj.role_id;
+                        }
+                        if (obj.name === res.managerName) {
+                            managerID = obj.manager_id;
+                        }
+                    }
+                    if (managerID === 0) {
+                        managerID = null;
+                    }
+
+                    if (roleID === 0) {
+                        roleID = null;
+                    }
+                    console.log(`Added ${res.first_name} ${res.last_name} role_Id: ${roleID} / Manager_Id ${managerID}`);
+                    console.log(`Added ${res.first_name} ${res.last_name} to the database`);
+                    connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${res.first_name}", "${res.last_name}", ${roleID}, ${managerID});`);
+                    console.log();
+
+                    menuInquirer();
+                })
+        }
+    )
 }
 
 function deleteEmployeeSql() {
