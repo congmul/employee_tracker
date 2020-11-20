@@ -169,9 +169,9 @@ function addEmployeeSql() {
                 } else {
                     roleArrTemp.push(obj.title);
                 }
-                if(obj.name === null) {
+                if (obj.name === null) {
 
-                } else{
+                } else {
                     nameArrTemp.push(obj.name);
                 }
             }
@@ -243,7 +243,58 @@ function updateEmployeeSql() {
     connection.query(`SELECT id, CONCAT(first_name,' ',last_name) AS name FROM employee`,
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
+            let nameArr = [];
+            let employeeArr = res;
+            let employeeSelected = "";
+            for (obj of res) {
+                nameArr.push(obj.name);
+            }
+            nameArr.push("CANCEL");
+            inquirer
+                .prompt([
+                    {
+                        type: "rawlist",
+                        message: "Which employee's manager do you want to change?",
+                        name: "name",
+                        choices: nameArr
+                    }
+                ]).then((res) => {
+                    if (res.name === "CANCEL") {
+                        menuInquirer();
+                    } else {
+                        employeeSelected = res.name;
+                        nameArr.splice(nameArr.indexOf(res.name), 1);
+                        nameArr.splice(nameArr.indexOf("CANCEL"), 1);
+                        nameArr.push("null");
+                        inquirer
+                            .prompt([
+                                {
+                                    type: "rawlist",
+                                    message: "Which manager do you want to assign?",
+                                    name: "name",
+                                    choices: nameArr
+                                }
+                            ]).then((res) => {
+                                // console.log(employeeArr);
+                                let id = 0;
+                                if(res.name === "null"){
+                                    id = 0;
+                                }else{
+                                    for(obj of employeeArr){
+                                        if(res.name === obj.name){
+                                            id = obj.id;
+                                        }
+                                    }
+                                }
+                                
+                                connection.query("UPDATE employee SET manager_id = ? WHERE CONCAT(first_name,' ',last_name) = ?", [id, employeeSelected]);
+                                console.log(`Updated ${employeeSelected}'s Manager as ${res.name} from the database`);
+                                console.log();
+                                menuInquirer();
+                            });
+                    }
+                });
         })
 }
 
