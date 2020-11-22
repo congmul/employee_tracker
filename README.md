@@ -16,7 +16,7 @@ It is able to view and manage the departments, roles, and employees in my compan
 2. npm i to install packages.
 3. node index.js to run this program.
 
-[![Operating Video](./assets/img/thumnail.png)](https://www.youtube.com/watch?v=https://youtu.be/3Q1eJdYBhIQ)
+[![Operating Video](./assets/img/thumnail.png)](https://youtu.be/3Q1eJdYBhIQ)
 
 ## Installation 
 To install necessary dependencies, run the following command:
