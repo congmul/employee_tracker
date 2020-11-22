@@ -156,7 +156,7 @@ function addEmployeeSql() {
     LEFT JOIN employee e ON e.role_id = r.id`,
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
             let resultObj = res;
             let nameArrTemp = [];
             let roleArrTemp = [];
@@ -207,7 +207,7 @@ function addEmployeeSql() {
                         choices: nameArr
                     }
                 ]).then((res) => {
-                    console.log(resultObj);
+                    // console.log(resultObj);
                     let roleID = 0;
                     let managerID = 0;
                     // let inputName = res.first_name + " " + res.last_name;
@@ -226,7 +226,7 @@ function addEmployeeSql() {
                     if (roleID === 0) {
                         roleID = null;
                     }
-                    console.log(`Added ${res.first_name} ${res.last_name} role_Id: ${roleID} / Manager_Id ${managerID}`);
+                    // console.log(`Added ${res.first_name} ${res.last_name} role_Id: ${roleID} / Manager_Id ${managerID}`);
                     console.log(`Added ${res.first_name} ${res.last_name} to the database`);
                     connection.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES ("${res.first_name}", "${res.last_name}", ${roleID}, ${managerID});`);
                     console.log();
@@ -471,7 +471,7 @@ function deleteRoleSql() {
     connection.query(`SELECT title FROM role`,
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
             let nameArr = [];
             for (obj of res) {
                 nameArr.push(obj.title);
@@ -503,7 +503,7 @@ function deleteDepartmentSql() {
     connection.query(`SELECT name FROM department`,
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
             let nameArr = [];
             for (obj of res) {
                 nameArr.push(obj.name);
